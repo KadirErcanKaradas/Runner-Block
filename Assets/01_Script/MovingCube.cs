@@ -13,8 +13,8 @@ public class MovingCube : MonoBehaviour
     public MoveDirection MoveDirection { get;  set; }
 
     [SerializeField] private float moveSpeed=1f;
-    [SerializeField] private bool isMove= true;
-    private Tween tween;
+
+    private int direction = -1;
 
     private void OnEnable()
     {
@@ -22,70 +22,74 @@ public class MovingCube : MonoBehaviour
             LastCube = GameObject.Find("Start").GetComponent<MovingCube>();
 
         CurrentCube = this;
-        GetComponent<Renderer>().material.color = GetRandomColor();
 
         transform.localScale = new Vector3(LastCube.transform.localScale.x,transform.localScale.y,LastCube.transform.localScale.z);
-    }
-
-    private Color GetRandomColor()
-    {
-        return new Color(UnityEngine.Random.Range(0,1f), UnityEngine.Random.Range(0, 1f), UnityEngine.Random.Range(0, 1f));
+        GameManager.Instance.currentCube = LastCube.transform.localScale.x;
     }
     internal void Stop()
     {
-        moveSpeed = 0;
-        float hangover = GetHangover();
-
-        float max = MoveDirection == MoveDirection.Z ? LastCube.transform.localScale.x : LastCube.transform.localScale.x;
-        if (Mathf.Abs(hangover) >= LastCube.transform.localScale.z)
+        if (GameManager.Instance.GameStage == GameStage.Started)
         {
-            LastCube = null;
-            CurrentCube = null;
-            SceneManager.LoadScene(0);
-        }
+            moveSpeed = 0;
+            float hangover = transform.position.x - LastCube.transform.position.x;
+            if (Mathf.Abs(hangover) >= LastCube.transform.localScale.z)
+            {
+                LastCube = null;
+                CurrentCube = null;
+            }
 
-        float direction = hangover > 0 ? 1f : -1f;
+            float direction = hangover > 0 ? 1f : -1f;
 
-        if (MoveDirection == MoveDirection.Z)
-            SplitCubeOnZ(hangover, direction);
-        else
-            SplitCubeOnX(hangover, direction);
-        LastCube = this;
-    }
-    private float GetHangover()
-    {
-        if (MoveDirection == MoveDirection.Z)
-            return transform.position.x - LastCube.transform.position.x;
-        else
-            return transform.position.x - LastCube.transform.position.x;
+            if (MoveDirection == MoveDirection.Z)
+                SplitCubeOnZ(hangover, direction);
+            else
+                SplitCubeOnX(hangover, direction);
+            LastCube = this;
+        }   
     }
     private void SplitCubeOnX(float hangover, float direction)
     {
         float newXSize = LastCube.transform.localScale.x - Mathf.Abs(hangover);
-        float fallingBlockSize = transform.localScale.x - newXSize;
+        if (newXSize<0)
+        {
+            GameManager.Instance.SetGameStage(GameStage.Fail);
+            gameObject.AddComponent<Rigidbody>();
+        }
+        else
+        {
+            float fallingBlockSize = transform.localScale.x - newXSize;
+            GameManager.Instance.fallCube = fallingBlockSize;
+            float newXPosition = LastCube.transform.position.x + (hangover / 2);
+            transform.localScale = new Vector3(newXSize, transform.localScale.y, transform.localScale.z);
+            transform.position = new Vector3(newXPosition, transform.position.y, transform.position.z);
 
-        float newXPosition = LastCube.transform.position.x + (hangover / 2);
-        transform.localScale = new Vector3(newXSize, transform.localScale.y, transform.localScale.z);
-        transform.position = new Vector3(newXPosition,transform.position.y, transform.position.z);
+            float cubeEdge = transform.position.x + (newXSize / 2f * direction);
+            float fallingBlockXPosition = cubeEdge + fallingBlockSize / 2f * direction;
 
-        float cubeEdge = transform.position.x + (newXSize / 2f * direction);
-        float fallingBlockXPosition = cubeEdge + fallingBlockSize / 2f * direction;
-
-        SpawnDropCube(fallingBlockXPosition, fallingBlockSize);
+            SpawnDropCube(fallingBlockXPosition, fallingBlockSize);
+        }
+        
     }
     private void SplitCubeOnZ(float hangover,float direction)
     {
         float newXSize = LastCube.transform.localScale.x - Mathf.Abs(hangover);
-        float fallingBlockSize = transform.localScale.x - newXSize;
+        if (newXSize < 0)
+        {
+            GameManager.Instance.SetGameStage(GameStage.Fail);
+            gameObject.AddComponent<Rigidbody>();
+        }
+        else
+        {
+            float fallingBlockSize = transform.localScale.x - newXSize;
+            float newXPosition = LastCube.transform.position.x + (hangover / 2);
+            transform.localScale = new Vector3(newXSize, transform.localScale.y, transform.localScale.z);
+            transform.position = new Vector3(newXPosition, transform.position.y, transform.position.z);
 
-        float newXPosition = LastCube.transform.position.x + (hangover / 2);
-        transform.localScale = new Vector3(newXSize, transform.localScale.y, transform.localScale.z);
-        transform.position = new Vector3(newXPosition, transform.position.y, transform.position.z);
+            float cubeEdge = transform.position.x + (newXSize / 2f * direction);
+            float fallingBlockXPosition = cubeEdge + fallingBlockSize / 2f * direction;
 
-        float cubeEdge = transform.position.x + (newXSize / 2f * direction);
-        float fallingBlockXPosition = cubeEdge + fallingBlockSize / 2f * direction;
-
-        SpawnDropCube(fallingBlockXPosition, fallingBlockSize);
+            SpawnDropCube(fallingBlockXPosition, fallingBlockSize);
+        }
     }
 
     private void SpawnDropCube(float fallingBlockZPosition,float fallingBlockSize)
@@ -101,46 +105,55 @@ public class MovingCube : MonoBehaviour
             cube.transform.localScale = new Vector3(fallingBlockSize,transform.localScale.y, transform.localScale.z);
             cube.transform.position = new Vector3(fallingBlockZPosition , transform.position.y, transform.position.z);
         }
-        
-
         cube.AddComponent<Rigidbody>();
-        cube.GetComponent<Renderer>().material.color = GetComponent<Renderer>().material.color;
+        cube.GetComponent<MeshRenderer>().materials[0].color = LastCube.GetComponent<MeshRenderer>().materials[0].color;
         Destroy(cube.gameObject, 1f);
+    }
+    public void ComboCounter()
+    {
+        if (LastCube.transform.position.x < CurrentCube.transform.position.x)
+        {
+            
+        }
+        
     }
 
     private void Update()
     {
-        if (MoveDirection == MoveDirection.Z)
+        if (MoveDirection == MoveDirection.Z && GameManager.Instance.GameStage == GameStage.Started)
         {
-            if (transform.position.x >= 2f) 
+            if (transform.position.x >= 3f)
             {
-                //transform.position += -transform.right * Time.deltaTime * moveSpeed;
-                transform.Translate(new Vector3(-1, 0, 0) * Time.deltaTime * moveSpeed);
-            } 
-           if (transform.position.x<=-2f)
-            {
-                transform.Translate(new Vector3(1, 0, 0) * Time.deltaTime * moveSpeed);
-            }
-        }
-        else
-        {
-     
-        }  
-    }
-    //private void Start()
-    //{
-    //    StartCoroutine(MovementTween());
-    //}
-    //private IEnumerator MovementTween()
-    //{
-        
-    //    yield return new WaitForSeconds(0.05f);
-    //    while (isMove)
-    //    {
-    //        tween.Kill();
-    //        tween = transform.DOMoveX(-2, 1).OnComplete(() => transform.DOMoveX(2, 1));
-    //        yield return new WaitForSeconds(2.05f);
-    //    }
+                direction = 1;
 
-    //}
+            }
+            else if (transform.position.x <= -3f)
+            {
+                direction = -1;
+            }
+            transform.Translate(direction * Vector3.left * Time.deltaTime * moveSpeed, Space.World);
+
+        }
+        else if (MoveDirection == MoveDirection.X && GameManager.Instance.GameStage == GameStage.Started)
+        {
+            if (transform.position.x >= 3f)
+            {
+                direction = -1;
+
+            }
+            else if (transform.position.x <= -3f)
+            {
+                direction = 1;
+            }
+            transform.Translate(direction * Vector3.right * Time.deltaTime * moveSpeed, Space.World);
+        }
+        GameManager.Instance.lastCube = LastCube.transform.localScale.x;
+    }
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.gameObject.CompareTag("Finish"))
+        {
+            GameManager.Instance.SetGameStage(GameStage.WinCube);
+        }
+    }
 }
