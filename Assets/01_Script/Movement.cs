@@ -6,6 +6,8 @@ public class Movement : MonoBehaviour
 {
     [SerializeField] private Animator anim;
     [SerializeField] private float speed=1f;
+    [SerializeField] private GameObject target;
+    [SerializeField] private ParticleSystem ps;
     void Update()
     {
         if (GameManager.Instance.GameStage == GameStage.Started)
@@ -23,13 +25,14 @@ public class Movement : MonoBehaviour
         if (other.gameObject.CompareTag("Target"))
         {
             anim.SetBool("fail",true);
-            print("asdfasfasdfasd");
+            gameObject.GetComponent<CapsuleCollider>().isTrigger = true;
             GameManager.Instance.SetGameStage(GameStage.FailFall);
 
         }
         if (other.gameObject.CompareTag("Finish"))
         {
             anim.SetBool("win", true);
+            ps.Play();
             GameManager.Instance.SetGameStage(GameStage.Win);
         }
     }

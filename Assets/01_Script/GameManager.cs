@@ -13,6 +13,7 @@ public class GameManager : MonoBehaviour
     public float lastCube;
     public UIController uIController;
     public int comboCounter = 0;
+    public List<Material> materials = new List<Material>();
 
     public static GameManager Instance;
     public GameStage GameStage { get; private set; }
@@ -48,24 +49,21 @@ public class GameManager : MonoBehaviour
     }
     public void ComboCube()
     {
+        print(lastCube-currentCube+"lastcurrent");
+        print(lastCube/20);
         float start = GameObject.Find("Start").transform.localScale.x;
-        if (lastCube - currentCube < 0.05f)
-        {
-            print(lastCube - currentCube);
+        Color _color = materials[comboCounter].color;
+        if (lastCube-currentCube<lastCube/35)
+        {            
             comboCounter++;
             uIController.comboText.transform.DOScale(Vector3.one * 2f, 0.5f).OnComplete(() => uIController.comboText.transform.DOScale(Vector3.one,0.5f));
-            MovingCube.CurrentCube.GetComponent<MeshRenderer>().materials[0].color = Color.red;
-        }
-        else if (lastCube - currentCube < 0.01f)
-        {
-            comboCounter++;
-            uIController.comboText.transform.DOScale(Vector3.one * 2f, 0.5f).OnComplete(() => uIController.comboText.transform.DOScale(Vector3.one, 0.5f));
-            MovingCube.CurrentCube.GetComponent<MeshRenderer>().materials[0].color = Color.blue;
+             
+            MovingCube.CurrentCube.GetComponent<MeshRenderer>().materials[0].color = Color32.Lerp(MovingCube.CurrentCube.GetComponent<MeshRenderer>().materials[0].color, _color, 0.5f);
         }
         else
         {
             comboCounter = 0;
-            MovingCube.CurrentCube.GetComponent<MeshRenderer>().materials[0].color = GameObject.Find("Start").GetComponent<MeshRenderer>().materials[0].color;
+            MovingCube.CurrentCube.GetComponent<MeshRenderer>().materials[0].color = _color;
         }
     }
     public void StartCube()

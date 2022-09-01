@@ -109,25 +109,16 @@ public class MovingCube : MonoBehaviour
         cube.GetComponent<MeshRenderer>().materials[0].color = LastCube.GetComponent<MeshRenderer>().materials[0].color;
         Destroy(cube.gameObject, 1f);
     }
-    public void ComboCounter()
-    {
-        if (LastCube.transform.position.x < CurrentCube.transform.position.x)
-        {
-            
-        }
-        
-    }
-
     private void Update()
     {
         if (MoveDirection == MoveDirection.Z && GameManager.Instance.GameStage == GameStage.Started)
         {
-            if (transform.position.x >= 3f)
+            if (transform.position.x >= 5f)
             {
                 direction = 1;
 
             }
-            else if (transform.position.x <= -3f)
+            else if (transform.position.x <= -5f)
             {
                 direction = -1;
             }
@@ -136,12 +127,12 @@ public class MovingCube : MonoBehaviour
         }
         else if (MoveDirection == MoveDirection.X && GameManager.Instance.GameStage == GameStage.Started)
         {
-            if (transform.position.x >= 3f)
+            if (transform.position.x >= 5f)
             {
                 direction = -1;
 
             }
-            else if (transform.position.x <= -3f)
+            else if (transform.position.x <= -5f)
             {
                 direction = 1;
             }
