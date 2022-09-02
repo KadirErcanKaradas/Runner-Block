@@ -7,7 +7,7 @@ public class Movement : MonoBehaviour
     [SerializeField] private Animator anim;
     [SerializeField] private float speed=1f;
     [SerializeField] private GameObject target;
-    [SerializeField] private ParticleSystem ps;
+    [SerializeField] private ParticleSystem confeettiPs;
     void Update()
     {
         if (GameManager.Instance.GameStage == GameStage.Started)
@@ -19,6 +19,7 @@ public class Movement : MonoBehaviour
         {
             anim.SetBool("walking",false);
         }
+        
     }
     private void OnTriggerEnter(Collider other)
     {
@@ -32,7 +33,7 @@ public class Movement : MonoBehaviour
         if (other.gameObject.CompareTag("Finish"))
         {
             anim.SetBool("win", true);
-            ps.Play();
+            confeettiPs.Play();
             GameManager.Instance.SetGameStage(GameStage.Win);
         }
     }
