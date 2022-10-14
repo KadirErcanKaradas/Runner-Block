@@ -21,7 +21,16 @@ public class CameraFollow : MonoBehaviour
 
     private void LateUpdate()
     {
-        SmoothFollow();
+        
+        if (GameManager.Instance.GameStage== GameStage.Win)
+           { 
+               transform.RotateAround(target.transform.position, Vector3.up, -50 * Time.deltaTime);
+           }
+
+        if (GameManager.Instance.GameStage == GameStage.Started)
+        {
+            SmoothFollow();
+        }
     }
 
     public void SmoothFollow()
